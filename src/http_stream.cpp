@@ -197,9 +197,12 @@ public:
     bool write(char const* outputbuf)
     {
         fd_set rread = master;
+        fd_set wwrite;
+        bcopy(&master, &rread, sizeof(master));
+		bcopy(&master, &wwrite, sizeof(master));
         struct timeval select_timeout = { 0, 0 };
         struct timeval socket_timeout = { 0, timeout };
-        if (::select(maxfd + 1, &rread, NULL, NULL, &select_timeout) <= 0)
+        if (::select(maxfd + 1, &rread, &wwrite, NULL, &select_timeout) <= 0)
             return true; // nothing broken, there's just noone listening
 
         int outlen = static_cast<int>(strlen(outputbuf));
@@ -213,11 +216,13 @@ public:
         for (int s = 0; s <= maxfd; s++)
         {
             socklen_t addrlen = sizeof(SOCKADDR);
-            if (!FD_ISSET(s, &rread))      // ... on linux it's a bitmask ;)
-                continue;
 #endif
             if (s == sock) // request on master socket, accept and send main header.
             {
+                if (!FD_ISSET(s, &rread))
+				{
+					continue;
+				}// ... on linux it's a bitmask ;)
                 SOCKADDR_IN address = { 0 };
                 SOCKET      client = ::accept(sock, (SOCKADDR*)&address, &addrlen);
                 if (client == SOCKET_ERROR)
@@ -251,6 +256,10 @@ public:
             }
             else // existing client, just stream pix
             {
+                if (!FD_ISSET(s, &wwrite))
+				{
+					continue;
+				}// ... on linux it's a bitmask ;)
                 //char head[400];
                 // application/x-resource+json or application/x-collection+json -  when you are representing REST resources and collections
                 // application/json or text/json or text/javascript or text/plain.
