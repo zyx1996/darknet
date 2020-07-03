@@ -196,7 +196,7 @@ public:
 
     bool write(char const* outputbuf)
     {
-        fd_set rread = master;
+        fd_set rread;
         fd_set wwrite;
         bcopy(&master, &rread, sizeof(master));
 		bcopy(&master, &wwrite, sizeof(master));
