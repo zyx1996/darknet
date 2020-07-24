@@ -19,7 +19,7 @@
 // To use 3D-stereo camera ZED - uncomment the following line. ZED_SDK should be installed.
 //#define ZED_STEREO
 
-
+#define OPENCV
 #include "yolo_v2_class.hpp"    // imported functions from DLL
 
 #ifdef OPENCV
